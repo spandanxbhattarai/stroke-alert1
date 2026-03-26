@@ -7,12 +7,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --cwd apps/api dev & bun run --cwd apps/web dev",
-    "dev:api": "bun run --cwd apps/api dev",
-    "dev:web": "bun run --cwd apps/web dev",
-    "build": "bun run --cwd apps/api build && bun run --cwd apps/web build",
-    "lint": "bun run --cwd apps/web lint",
-    "type-check": "bun run --cwd apps/api type-check && bun run --cwd apps/web type-check"
+    "dev": "npm run dev:api & npm run dev:web",
+    "dev:api": "npm run dev --prefix apps/api",
+    "dev:web": "npm run dev --prefix apps/web",
+    "build": "npm run build --prefix apps/api && npm run build --prefix apps/web",
+    "lint": "npm run lint --prefix apps/web",
+    "type-check": "npm run type-check --prefix apps/api && npm run type-check --prefix apps/web"
   },
   "devDependencies": {
     "turbo": "^2.0.0",
