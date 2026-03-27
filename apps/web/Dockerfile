@@ -8,14 +8,18 @@ COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
 RUN cd packages/shared && bunx tsc
 RUN cd apps/web && bunx next build
-RUN find apps/web/.next/standalone -maxdepth 3 -type f -name "*.js" | head -30 && echo "---" && ls -la apps/web/.next/standalone/
 
 FROM node:18-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+RUN npm install -g next@14.0.4
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/shared ./packages/shared
+COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
+COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
 EXPOSE 3000
-CMD ["node", "apps/web/server.js"]
+CMD ["npx", "next", "start", "apps/web", "-p", "3000"]
