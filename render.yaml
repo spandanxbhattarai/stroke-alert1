@@ -30,7 +30,6 @@ services:
           name: strokealert-web
           type: web
           property: host
-          envVarKey: RENDER_EXTERNAL_URL
 
   - type: web
     name: strokealert-web
@@ -45,5 +44,4 @@ services:
         fromService:
           name: strokealert-api
           type: web
-          property: hostport
-          envVarKey: RENDER_EXTERNAL_URL
+          property: host
