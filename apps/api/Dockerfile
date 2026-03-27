@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY packages/shared/package.json ./packages/shared/package.json
+COPY apps/api/prisma ./apps/api/prisma
 RUN bun install
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
