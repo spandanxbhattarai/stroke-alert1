@@ -1,6 +1,6 @@
 import type { Hospital, HospitalWithDistance } from "@strokealert/shared";
 
-const API_URL = process.env.API_URL || "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:4000";
 
 export async function getHospitals(params?: { city?: string; search?: string }): Promise<Hospital[]> {
   const url = new URL(`${API_URL}/api/hospitals`);

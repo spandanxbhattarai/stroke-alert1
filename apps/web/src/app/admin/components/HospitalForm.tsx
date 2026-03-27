@@ -43,8 +43,8 @@ export default function HospitalForm({ defaultValues, hospitalId, mode }: Props)
     try {
       const url =
         mode === "edit"
-          ? `/api/hospitals/${hospitalId}`
-          : `/api/hospitals`;
+          ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/hospitals/${hospitalId}`
+          : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/hospitals`;
       const res = await fetch(url, {
         method: mode === "edit" ? "PUT" : "POST",
         headers: {

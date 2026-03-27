@@ -15,7 +15,7 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     localStorage.removeItem("admin_token");
-    await fetch(`/api/auth/logout`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

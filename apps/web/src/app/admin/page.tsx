@@ -23,7 +23,7 @@ export default function AdminDashboard() {
       router.push("/admin/login");
       return;
     }
-    fetch(`/api/admin/stats`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/admin/stats`, {
       headers: { Authorization: `Bearer ${token}` },
       credentials: "include",
     })

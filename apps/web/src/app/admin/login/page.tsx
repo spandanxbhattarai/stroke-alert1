@@ -19,7 +19,7 @@ export default function LoginPage() {
     setLoading(true);
     setServerError(null);
     try {
-      const res = await fetch(`/api/auth/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

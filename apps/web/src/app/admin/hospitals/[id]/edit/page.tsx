@@ -16,7 +16,7 @@ export default function EditHospitalPage() {
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
     if (!token) { router.push("/admin/login"); return; }
-    fetch(`/api/hospitals/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/hospitals/${id}`)
       .then((r) => r.json())
       .then((d) => setHospital(d.data))
       .finally(() => setLoading(false));

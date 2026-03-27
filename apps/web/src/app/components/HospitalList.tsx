@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import HospitalCard from "./HospitalCard";
 import LocationSearch from "./LocationSearch";
 import type { HospitalWithDistance, Hospital } from "@strokealert/shared";
+import { API_URL } from "../lib/api";
 
 type Status = "idle" | "loading" | "success" | "denied" | "error";
 
@@ -15,7 +16,7 @@ export default function HospitalList() {
   const fetchNearest = useCallback(async (lat: number, lng: number) => {
     setStatus("loading");
     try {
-      const res = await fetch(`/api/hospitals/nearest?lat=${lat}&lng=${lng}&limit=10`);
+      const res = await fetch(`${API_URL}/api/hospitals/nearest?lat=${lat}&lng=${lng}&limit=10`);
       if (!res.ok) throw new Error("Failed to fetch hospitals");
       const data = await res.json();
       setHospitals(data.data || []);
@@ -30,8 +31,8 @@ export default function HospitalList() {
     setStatus("loading");
     try {
       const url = city
-        ? `/api/hospitals?city=${encodeURIComponent(city)}`
-        : `/api/hospitals`;
+        ? `${API_URL}/api/hospitals?city=${encodeURIComponent(city)}`
+        : `${API_URL}/api/hospitals`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch hospitals");
       const data = await res.json();

@@ -33,8 +33,5 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: API_URL
-        fromService:
-          name: strokealert-api
-          type: web
-          property: host
+      - key: NEXT_PUBLIC_API_URL
+        value: https://strokealert-api.onrender.com
