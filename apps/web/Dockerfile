@@ -8,6 +8,7 @@ COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
 RUN cd packages/shared && bunx tsc
 RUN cd apps/web && bunx next build
+RUN find apps/web/.next/standalone -maxdepth 3 -type f -name "*.js" | head -30 && echo "---" && ls -la apps/web/.next/standalone/
 
 FROM node:18-alpine AS runner
 WORKDIR /app
