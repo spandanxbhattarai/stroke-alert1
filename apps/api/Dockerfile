@@ -6,8 +6,8 @@ COPY packages/shared/package.json ./packages/shared/package.json
 RUN bun install
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
-RUN bun run build --cwd packages/shared
-RUN bun run build --cwd apps/api
+RUN cd packages/shared && bunx tsc
+RUN cd apps/api && bunx tsc
 RUN cd apps/api && bunx prisma generate
 
 FROM node:18-alpine AS runner

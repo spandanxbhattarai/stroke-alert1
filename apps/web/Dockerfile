@@ -6,8 +6,8 @@ COPY packages/shared/package.json ./packages/shared/package.json
 RUN bun install
 COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
-RUN bun run build --cwd packages/shared
-RUN bun run build --cwd apps/web
+RUN cd packages/shared && bunx tsc
+RUN cd apps/web && bunx next build
 
 FROM node:18-alpine AS runner
 WORKDIR /app
