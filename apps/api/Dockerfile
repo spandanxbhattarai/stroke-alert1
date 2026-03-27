@@ -1,4 +1,4 @@
-FROM oven/bun:1 AS builder
+FROM oven/bun:1
 WORKDIR /app
 COPY package.json bun.lock ./
 COPY apps/api/package.json ./apps/api/package.json
@@ -9,14 +9,7 @@ COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 RUN cd packages/shared && bunx tsc
 RUN cd apps/api && bunx tsc
-RUN cd apps/api && bunx prisma generate
-
-FROM node:18-alpine AS runner
-WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/prisma ./prisma
-COPY --from=builder /app/apps/api/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
+WORKDIR /app/apps/api
 EXPOSE 10000
-CMD ["sh", "-c", "npx prisma db push --skip-generate 2>/dev/null; node dist/server.js"]
+CMD ["sh", "-c", "bunx prisma db push --skip-generate 2>/dev/null; bun run dist/server.js"]
