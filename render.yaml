@@ -15,8 +15,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: "4000"
       - key: DATABASE_URL
         fromDatabase:
           name: strokealert-db
@@ -25,11 +23,6 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
-      - key: ALLOWED_ORIGIN
-        fromService:
-          name: strokealert-web
-          type: web
-          property: host
 
   - type: web
     name: strokealert-web
