@@ -1,18 +1,13 @@
-FROM oven/bun:1 AS deps
+FROM oven/bun:1 AS builder
 WORKDIR /app
 COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/shared/package.json ./packages/shared/package.json
 RUN bun install
-
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
-COPY package.json ./
-RUN npm run build --prefix packages/shared
-RUN npm run build --prefix apps/web
+RUN bun run build --cwd packages/shared
+RUN bun run build --cwd apps/web
 
 FROM node:18-alpine AS runner
 WORKDIR /app

@@ -1,19 +1,14 @@
-FROM oven/bun:1 AS deps
+FROM oven/bun:1 AS builder
 WORKDIR /app
 COPY package.json bun.lock ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY packages/shared/package.json ./packages/shared/package.json
 RUN bun install
-
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
-COPY package.json ./
-RUN npm run build --prefix packages/shared
-RUN npm run build --prefix apps/api
-RUN cd apps/api && npx prisma generate
+RUN bun run build --cwd packages/shared
+RUN bun run build --cwd apps/api
+RUN cd apps/api && bunx prisma generate
 
 FROM node:18-alpine AS runner
 WORKDIR /app
