@@ -7,8 +7,6 @@ import type { HospitalWithDistance, Hospital } from "@strokealert/shared";
 
 type Status = "idle" | "loading" | "success" | "denied" | "error";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
 export default function HospitalList() {
   const [status, setStatus] = useState<Status>("idle");
   const [hospitals, setHospitals] = useState<(HospitalWithDistance | Hospital)[]>([]);
@@ -17,7 +15,7 @@ export default function HospitalList() {
   const fetchNearest = useCallback(async (lat: number, lng: number) => {
     setStatus("loading");
     try {
-      const res = await fetch(`${API_URL}/api/hospitals/nearest?lat=${lat}&lng=${lng}&limit=10`);
+      const res = await fetch(`/api/hospitals/nearest?lat=${lat}&lng=${lng}&limit=10`);
       if (!res.ok) throw new Error("Failed to fetch hospitals");
       const data = await res.json();
       setHospitals(data.data || []);
@@ -32,8 +30,8 @@ export default function HospitalList() {
     setStatus("loading");
     try {
       const url = city
-        ? `${API_URL}/api/hospitals?city=${encodeURIComponent(city)}`
-        : `${API_URL}/api/hospitals`;
+        ? `/api/hospitals?city=${encodeURIComponent(city)}`
+        : `/api/hospitals`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch hospitals");
       const data = await res.json();
@@ -65,7 +63,7 @@ export default function HospitalList() {
           Location access denied. Search by city to find nearby hospitals.
         </p>
         <LocationSearch onSearch={fetchAll} />
-        {status === "success" || hospitals.length > 0 ? (
+        { hospitals.length > 0 ? (
           <HospitalResults hospitals={hospitals} />
         ) : null}
       </div>

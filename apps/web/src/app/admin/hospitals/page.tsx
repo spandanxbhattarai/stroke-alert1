@@ -26,7 +26,7 @@ export default function HospitalsPage() {
       const params = new URLSearchParams({ page: String(page), pageSize: "20" });
       if (search) params.set("search", search);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/hospitals?${params}`,
+        `/api/hospitals?${params}`,
         { headers: { Authorization: `Bearer ${token}` }, credentials: "include" }
       );
       const data = await res.json();
@@ -42,7 +42,7 @@ export default function HospitalsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this hospital? This cannot be undone.")) return;
     const token = getToken();
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hospitals/${id}`, {
+    await fetch(`/api/hospitals/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
       credentials: "include",
@@ -52,7 +52,7 @@ export default function HospitalsPage() {
 
   const handleToggleStatus = async (id: string, isActive: boolean) => {
     const token = getToken();
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hospitals/${id}/status`, {
+    await fetch(`/api/hospitals/${id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       credentials: "include",
