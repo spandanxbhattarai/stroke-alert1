@@ -7,6 +7,8 @@ RUN bun install
 COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
 RUN cd packages/shared && bunx tsc
+ARG NEXT_PUBLIC_API_URL=https://strokealert-api.onrender.com
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN cd apps/web && bunx next build
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
