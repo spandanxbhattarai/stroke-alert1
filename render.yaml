@@ -1,0 +1,49 @@
+databases:
+  - name: strokealert-db
+    plan: free
+    databaseName: strokealert
+    user: strokealert
+
+services:
+  - type: web
+    name: strokealert-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "4000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: strokealert-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: ALLOWED_ORIGIN
+        fromService:
+          name: strokealert-web
+          type: web
+          property: host
+          envVarKey: RENDER_EXTERNAL_URL
+
+  - type: web
+    name: strokealert-web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/web/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_URL
+        fromService:
+          name: strokealert-api
+          type: web
+          property: hostport
+          envVarKey: RENDER_EXTERNAL_URL
