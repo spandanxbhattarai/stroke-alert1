@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import clsx from "clsx";
+import Logo from "../../components/ui/Logo";
+import { GridIcon, ListIcon, LogoutIcon, PlusIcon } from "../../components/ui/Icons";
+import { DUR, EASE } from "../../components/ui/motion";
+import { API_URL } from "../../lib/api";
 
-const NAV_ITEMS = [
-  { href: "/admin", label: "Dashboard", icon: "📊" },
-  { href: "/admin/hospitals", label: "Hospitals", icon: "🏥" },
-  { href: "/admin/hospitals/new", label: "Add Hospital", icon: "➕" },
+const NAV = [
+  { href: "/admin", label: "Dashboard", Icon: GridIcon, exact: true },
+  { href: "/admin/hospitals", label: "Hospitals", Icon: ListIcon, exact: false },
+  { href: "/admin/hospitals/new", label: "Add", Icon: PlusIcon, exact: true },
 ];
 
 export default function Sidebar() {
@@ -15,64 +21,74 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     localStorage.removeItem("admin_token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" });
+    } catch {
+      // Logging out locally is what matters; a failed server call must not trap the admin.
+    }
     router.push("/admin/login");
   };
 
+  const isActive = (href: string, exact: boolean) =>
+    exact ? pathname === href : pathname.startsWith(href) && pathname !== "/admin/hospitals/new";
+
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🚨</span>
-          <div>
-            <div className="font-black text-gray-900">StrokeAlert</div>
-            <div className="text-xs text-gray-500">Admin Dashboard</div>
-          </div>
-        </div>
+    <aside
+      className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-ink bg-paper px-4
+                 no-scrollbar lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:flex-col lg:items-stretch
+                 lg:gap-0 lg:overflow-visible lg:border-b-0 lg:border-r lg:px-0"
+    >
+      <div className="flex shrink-0 items-center py-4 lg:border-b lg:border-rule lg:px-5 lg:py-6">
+        <Link href="/admin" aria-label="StrokeAlert admin home">
+          <Logo size="md" />
+        </Link>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1" aria-label="Admin navigation">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            item.href === "/admin"
-              ? pathname === "/admin"
-              : pathname.startsWith(item.href);
+      <p className="label hidden px-5 pt-6 lg:block">Manage</p>
+
+      <nav aria-label="Admin navigation" className="flex items-stretch gap-1 lg:mt-2 lg:flex-col lg:gap-0">
+        {NAV.map(({ href, label, Icon, exact }) => {
+          const active = isActive(href, exact);
           return (
             <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-red-50 text-red-700"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-              aria-current={isActive ? "page" : undefined}
+              key={href}
+              href={href}
+              aria-current={active ? "page" : undefined}
+              className={clsx(
+                "tap relative flex shrink-0 items-center gap-3 px-4 font-mono text-micro uppercase",
+                "tracking-[0.14em] transition-colors lg:px-5 lg:py-3.5",
+                active ? "text-ink" : "text-ink-3 hover:text-ink"
+              )}
             >
-              <span>{item.icon}</span>
-              {item.label}
+              {active && (
+                <motion.span
+                  layoutId="admin-nav-marker"
+                  className="absolute bottom-0 left-0 h-[3px] w-full bg-signal lg:bottom-auto lg:h-full lg:w-[3px]"
+                  transition={{ duration: DUR.fast, ease: EASE }}
+                />
+              )}
+              <Icon className="h-4 w-4" />
+              {label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
-        <button
-          onClick={handleLogout}
-          className="w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-        >
-          <span>🚪</span>
-          Sign Out
-        </button>
+      <div className="ml-auto flex shrink-0 items-stretch gap-1 lg:ml-0 lg:mt-auto lg:flex-col lg:gap-0 lg:border-t lg:border-rule lg:py-2">
         <Link
           href="/"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors mt-1"
+          className="tap flex shrink-0 items-center gap-3 px-4 font-mono text-micro uppercase tracking-[0.14em] text-ink-3 transition-colors hover:text-ink lg:px-5 lg:py-3"
         >
-          <span>🌐</span>
-          Public Page
+          Public site
         </Link>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="tap flex shrink-0 items-center gap-3 px-4 font-mono text-micro uppercase tracking-[0.14em] text-ink-3 transition-colors hover:text-signal lg:px-5 lg:py-3"
+        >
+          <LogoutIcon className="h-4 w-4" />
+          Sign out
+        </button>
       </div>
     </aside>
   );

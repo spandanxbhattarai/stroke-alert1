@@ -4,8 +4,17 @@ import { hospitalService } from "../services/hospital.service";
 export const hospitalController = {
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const { city, search, page, pageSize } = req.query as any;
-      const result = await hospitalService.getAll({ city, search, page: Number(page) || 1, pageSize: Number(pageSize) || 20 });
+      const { city, search, page, pageSize, active } = req.query as any;
+      // `active=true` lets public surfaces (map, nearest list) exclude
+      // deactivated hospitals; admin views omit it and see everything.
+      const isActive = active === undefined ? undefined : active === "true" || active === "1";
+      const result = await hospitalService.getAll({
+        city,
+        search,
+        isActive,
+        page: Number(page) || 1,
+        pageSize: Number(pageSize) || 20,
+      });
       res.json({
         success: true,
         data: result.hospitals,

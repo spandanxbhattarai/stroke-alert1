@@ -1,8 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+// SIGNAL type system: one grotesque for everything, one mono for data.
+const archivo = Archivo({
+  subsets: ["latin"],
+  variable: "--font-archivo",
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-plex-mono",
+  display: "swap",
+  weight: ["400", "500"],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
@@ -19,6 +32,7 @@ export const metadata: Metadata = {
     "emergency hospital",
     "brain stroke symptoms",
     "FAST stroke",
+    "stroke hospitals Nepal",
   ],
   authors: [{ name: "StrokeAlert" }],
   robots: { index: true, follow: true },
@@ -35,20 +49,24 @@ export const metadata: Metadata = {
     title: "Brain Stroke Emergency Help — StrokeAlert",
     description: "Find nearest hospital for stroke emergency. Call or get directions instantly.",
   },
-  other: {
-    "theme-color": "#dc2626",
-  },
+};
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0b0c" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${archivo.variable} ${plexMono.variable}`}>
       <head>
+        {/* Admin map embeds still hit Google Maps — keep the handshake warm. */}
         <link rel="preconnect" href="https://maps.googleapis.com" />
         <link rel="preconnect" href="https://maps.gstatic.com" crossOrigin="anonymous" />
-        <meta name="theme-color" content="#dc2626" />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
+      <body className="font-sans antialiased bg-paper text-ink">{children}</body>
     </html>
   );
 }

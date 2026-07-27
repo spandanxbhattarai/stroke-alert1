@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Sidebar from "../../../components/Sidebar";
+import AdminShell from "../../../components/AdminShell";
 import HospitalForm from "../../../components/HospitalForm";
-import type { Hospital } from "@strokealert/shared";
-import type { CreateHospitalInput } from "@strokealert/shared";
+import type { CreateHospitalInput, Hospital } from "@strokealert/shared";
+import { API_URL } from "../../../../lib/api";
 
 export default function EditHospitalPage() {
   const { id } = useParams();
@@ -15,8 +15,11 @@ export default function EditHospitalPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
-    if (!token) { router.push("/admin/login"); return; }
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/hospitals/${id}`)
+    if (!token) {
+      router.push("/admin/login");
+      return;
+    }
+    fetch(`${API_URL}/api/hospitals/${id}`)
       .then((r) => r.json())
       .then((d) => setHospital(d.data))
       .finally(() => setLoading(false));
@@ -24,22 +27,26 @@ export default function EditHospitalPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
-        <main className="flex-1 p-8 animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-48 mb-4" />
-          <div className="h-96 bg-gray-200 rounded-2xl" />
-        </main>
-      </div>
+      <AdminShell index="04" kicker="Editing" title="Loading…">
+        <div className="space-y-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="border-b border-rule py-8">
+              <div className="h-3 w-24 animate-pulse bg-paper-2" />
+              <div className="mt-6 h-8 w-full animate-pulse bg-paper-2" />
+            </div>
+          ))}
+        </div>
+      </AdminShell>
     );
   }
 
   if (!hospital) {
     return (
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
-        <main className="flex-1 p-8 text-center text-gray-500">Hospital not found.</main>
-      </div>
+      <AdminShell index="04" kicker="Editing" title="Not found">
+        <p className="border border-rule px-6 py-12 text-center text-body text-ink-2">
+          This hospital record no longer exists.
+        </p>
+      </AdminShell>
     );
   }
 
@@ -56,27 +63,21 @@ export default function EditHospitalPage() {
     latitude: hospital.latitude,
     longitude: hospital.longitude,
     googleMapsLink: hospital.googleMapsLink,
-    type: hospital.type as any,
-    specializations: hospital.specializations as any,
+    type: hospital.type as CreateHospitalInput["type"],
+    specializations: hospital.specializations as CreateHospitalInput["specializations"],
     available24x7: hospital.available24x7,
     isActive: hospital.isActive,
     notes: hospital.notes || undefined,
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <div className="max-w-3xl">
-          <div className="mb-6">
-            <h1 className="text-2xl font-black text-gray-900">Edit Hospital</h1>
-            <p className="text-gray-500">Update details for {hospital.name}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <HospitalForm mode="edit" hospitalId={String(id)} defaultValues={defaultValues} />
-          </div>
-        </div>
-      </main>
-    </div>
+    <AdminShell
+      index="04"
+      kicker="Editing"
+      title={hospital.name}
+      lede="Changes go live to the public map and the nearest-hospital list immediately."
+    >
+      <HospitalForm mode="edit" hospitalId={String(id)} defaultValues={defaultValues} />
+    </AdminShell>
   );
 }

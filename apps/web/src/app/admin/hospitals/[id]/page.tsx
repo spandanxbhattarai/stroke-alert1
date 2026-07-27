@@ -2,16 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Sidebar from "../../components/Sidebar";
+import AdminShell from "../../components/AdminShell";
 import MapPreview from "../../components/MapPreview";
-import Link from "next/link";
+import NepalLocator from "../../../components/map/NepalLocator";
+import Chip from "../../../components/ui/Chip";
+import { ButtonLink } from "../../../components/ui/Button";
+import { Reveal } from "../../../components/ui/Reveal";
+import { PhoneIcon, PinIcon } from "../../../components/ui/Icons";
+import { formatCoord } from "../../../lib/nepal-geo";
 import type { Hospital } from "@strokealert/shared";
+import { API_URL } from "../../../lib/api";
 
 const TYPE_LABEL: Record<string, string> = {
   GOVERNMENT: "Government",
   PRIVATE: "Private",
   NGO: "NGO",
 };
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-3 gap-4 border-b border-rule py-3.5 last:border-b-0">
+      <dt className="label col-span-1">{label}</dt>
+      <dd className="col-span-2 text-body text-ink">{children}</dd>
+    </div>
+  );
+}
 
 export default function ViewHospitalPage() {
   const { id } = useParams();
@@ -21,8 +36,11 @@ export default function ViewHospitalPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
-    if (!token) { router.push("/admin/login"); return; }
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/hospitals/${id}`)
+    if (!token) {
+      router.push("/admin/login");
+      return;
+    }
+    fetch(`${API_URL}/api/hospitals/${id}`)
       .then((r) => r.json())
       .then((d) => setHospital(d.data))
       .finally(() => setLoading(false));
@@ -30,88 +48,135 @@ export default function ViewHospitalPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
-        <main className="flex-1 p-8 animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-48 mb-4" />
-          <div className="h-64 bg-gray-200 rounded-2xl" />
-        </main>
-      </div>
+      <AdminShell index="05" kicker="Record" title="Loading…">
+        <div className="grid grid-cols-12 gap-gutter">
+          <div className="col-span-12 space-y-3 lg:col-span-7">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-10 animate-pulse bg-paper-2" />
+            ))}
+          </div>
+          <div className="col-span-12 h-64 animate-pulse bg-paper-2 lg:col-span-5" />
+        </div>
+      </AdminShell>
     );
   }
 
   if (!hospital) {
     return (
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
-        <main className="flex-1 p-8 text-center text-gray-500">Hospital not found.</main>
-      </div>
+      <AdminShell index="05" kicker="Record" title="Not found">
+        <p className="border border-rule px-6 py-12 text-center text-body text-ink-2">
+          This hospital record no longer exists.
+        </p>
+      </AdminShell>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <div className="max-w-3xl">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-black text-gray-900">{hospital.name}</h1>
-              <p className="text-gray-500">{hospital.city}, {hospital.state}</p>
-            </div>
-            <Link
-              href={`/admin/hospitals/${id}/edit`}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl transition-colors"
-            >
-              Edit
-            </Link>
-          </div>
+    <AdminShell
+      index="05"
+      kicker={`${hospital.city} · ${hospital.state}`}
+      title={hospital.name}
+      actions={
+        <>
+          <ButtonLink href={`/admin/hospitals/${id}/edit`} variant="ink" size="md">
+            Edit record
+          </ButtonLink>
+          <ButtonLink
+            href={`tel:${hospital.emergencyPhone || hospital.phone}`}
+            variant="signal"
+            size="md"
+            icon={<PhoneIcon className="h-4 w-4" />}
+          >
+            Call
+          </ButtonLink>
+        </>
+      }
+    >
+      <Reveal className="mb-8 flex flex-wrap gap-1.5">
+        {hospital.available24x7 ? <Chip tone="signal">Open 24 / 7</Chip> : <Chip>Limited hours</Chip>}
+        <Chip tone="ink">{TYPE_LABEL[hospital.type] ?? hospital.type}</Chip>
+        {hospital.isActive ? <Chip>Active</Chip> : <Chip tone="muted">Inactive — hidden from public</Chip>}
+      </Reveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3">
-              <h2 className="font-bold text-gray-800">Contact</h2>
-              <p className="text-sm"><span className="text-gray-500">Phone:</span>{" "}
-                <a href={`tel:${hospital.phone}`} className="text-blue-600">{hospital.phone}</a>
-              </p>
-              {hospital.emergencyPhone && (
-                <p className="text-sm"><span className="text-gray-500">Emergency:</span>{" "}
-                  <a href={`tel:${hospital.emergencyPhone}`} className="text-red-600 font-bold">{hospital.emergencyPhone}</a>
-                </p>
-              )}
-              <p className="text-sm"><span className="text-gray-500">Address:</span>{" "}
-                {hospital.addressLine1}, {hospital.city}, {hospital.state}
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3">
-              <h2 className="font-bold text-gray-800">Details</h2>
-              <p className="text-sm"><span className="text-gray-500">Type:</span> {TYPE_LABEL[hospital.type]}</p>
-              <p className="text-sm"><span className="text-gray-500">Available 24/7:</span> {hospital.available24x7 ? "Yes" : "No"}</p>
-              <p className="text-sm">
-                <span className="text-gray-500">Status:</span>{" "}
-                <span className={hospital.isActive ? "text-green-600 font-semibold" : "text-gray-400"}>
-                  {hospital.isActive ? "Active" : "Inactive"}
-                </span>
-              </p>
-              <div>
-                <span className="text-gray-500 text-sm">Specializations:</span>
-                <div className="flex flex-wrap gap-1 mt-1">
+      <div className="grid grid-cols-12 gap-gutter">
+        <Reveal className="col-span-12 lg:col-span-7">
+          <p className="label border-b border-ink pb-3">Record</p>
+          <dl>
+            <Row label="Address">
+              {hospital.addressLine1}
+              {hospital.addressLine2 ? `, ${hospital.addressLine2}` : ""}
+              <br />
+              {hospital.city}, {hospital.state}
+              {hospital.postalCode ? ` ${hospital.postalCode}` : ""}
+              <br />
+              {hospital.country}
+            </Row>
+            <Row label="Phone">
+              <a href={`tel:${hospital.phone}`} className="font-mono hover:text-signal" data-numeric>
+                {hospital.phone}
+              </a>
+            </Row>
+            {hospital.emergencyPhone && (
+              <Row label="Emergency">
+                <a
+                  href={`tel:${hospital.emergencyPhone}`}
+                  className="font-mono font-medium text-signal"
+                  data-numeric
+                >
+                  {hospital.emergencyPhone}
+                </a>
+              </Row>
+            )}
+            <Row label="Capability">
+              {hospital.specializations.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
                   {hospital.specializations.map((s) => (
-                    <span key={s} className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">{s}</span>
+                    <Chip key={s}>{s}</Chip>
                   ))}
                 </div>
-              </div>
-            </div>
-          </div>
+              ) : (
+                <span className="text-ink-3">Not recorded</span>
+              )}
+            </Row>
+            <Row label="Coordinates">
+              <span className="font-mono text-small" data-numeric>
+                {formatCoord(hospital.latitude, "lat")} / {formatCoord(hospital.longitude, "lng")}
+              </span>
+            </Row>
+            {hospital.notes && <Row label="Notes">{hospital.notes}</Row>}
+          </dl>
 
-          <div className="bg-white rounded-2xl border border-gray-200 p-5">
-            <h2 className="font-bold text-gray-800 mb-3">Location</h2>
-            <p className="text-sm text-gray-500 mb-3">
-              Coordinates: {hospital.latitude}, {hospital.longitude}
-            </p>
-            <MapPreview googleMapsLink={hospital.googleMapsLink} name={hospital.name} />
+          <div className="mt-6">
+            <p className="label border-b border-ink pb-3">Street view</p>
+            <div className="mt-4">
+              <MapPreview googleMapsLink={hospital.googleMapsLink} name={hospital.name} />
+            </div>
+            <ButtonLink
+              href={hospital.googleMapsLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outline"
+              size="md"
+              className="mt-px"
+              full
+              icon={<PinIcon className="h-4 w-4" />}
+            >
+              Open directions
+            </ButtonLink>
           </div>
-        </div>
-      </main>
-    </div>
+        </Reveal>
+
+        <Reveal delay={0.1} className="col-span-12 lg:col-span-5">
+          <p className="label border-b border-ink pb-3">Position in the network</p>
+          <div className="mt-4 border border-rule p-4">
+            <NepalLocator
+              latitude={hospital.latitude}
+              longitude={hospital.longitude}
+              label={hospital.name}
+            />
+          </div>
+        </Reveal>
+      </div>
+    </AdminShell>
   );
 }

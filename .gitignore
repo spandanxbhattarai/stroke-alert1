@@ -6,4 +6,5 @@ dist/
 build/
 *.log
 .turbo/
+*.tsbuildinfo
 prisma/migrations/

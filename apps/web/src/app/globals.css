@@ -2,26 +2,148 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   SIGNAL — design tokens
+   Monochrome + one signal red. See REDESIGN_PLAN.md §1.2
+   ============================================================ */
+
 @layer base {
   :root {
-    --emergency: #dc2626;
+    --paper: #ffffff;
+    --paper-2: #f4f4f1;
+    --ink: #0b0b0c;
+    --ink-2: #6b6b70;
+    --ink-3: #a3a3a8;
+    --rule: #e2e2de;
+    --signal: #e8112d;
+    --signal-ink: #ffffff;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0b0b0c;
+      --paper-2: #141416;
+      --ink: #f4f4f1;
+      --ink-2: #9a9aa0;
+      --ink-3: #6b6b70;
+      --rule: #26262a;
+      --signal: #ff3049;
+      --signal-ink: #0b0b0c;
+    }
   }
 
   * {
     box-sizing: border-box;
+    /* Hairlines are the workhorse of this system — make them the default border. */
+    border-color: var(--rule);
   }
 
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-white text-gray-900;
+    background: var(--paper);
+    color: var(--ink);
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  /* Numerals must never wobble in tables, distances, or coordinates. */
+  .font-mono,
+  table,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: var(--signal);
+    color: var(--signal-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  /* Kill the native number-input spinners — they break the hairline field look. */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  /* Mono uppercase micro-label — the recurring Swiss annotation. */
+  .label {
+    @apply font-mono text-label uppercase text-ink-2;
+  }
+
+  .label-ink {
+    @apply font-mono text-label uppercase text-ink;
+  }
+
+  /* Hairline-underline form field. No boxes anywhere in this system. */
+  .field {
+    @apply w-full bg-transparent border-0 border-b border-rule py-2.5 text-body text-ink
+           placeholder:text-ink-3 focus:outline-none focus:border-signal
+           transition-colors duration-200;
+  }
+
+  .field-invalid {
+    @apply border-signal;
   }
 }
 
 @layer utilities {
-  .thumb-friendly {
-    @apply min-h-[56px] px-6 text-lg font-bold rounded-xl;
+  /* Emergency actions are exempt from Swiss restraint — see REDESIGN_PLAN.md §0 */
+  .tap-emergency {
+    @apply min-h-[56px];
+  }
+
+  .tap {
+    @apply min-h-[44px];
+  }
+
+  /* Hairline column guides: the "show your grid" background layer. */
+  .grid-guides {
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--rule) 0 1px,
+      transparent 1px calc(100% / 12)
+    );
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

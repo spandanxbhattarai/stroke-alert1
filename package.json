@@ -7,15 +7,16 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev:api & npm run dev:web",
-    "dev:api": "npm run dev --prefix apps/api",
-    "dev:web": "npm run dev --prefix apps/web",
-    "build": "npm run build --prefix packages/shared && npm run build --prefix apps/api && npm run build --prefix apps/web",
-    "start": "npm run start:api & npm run start:web",
-    "start:api": "npm run start --prefix apps/api",
-    "start:web": "npm run start --prefix apps/web",
-    "lint": "npm run lint --prefix apps/web",
-    "type-check": "npm run type-check --prefix apps/api && npm run type-check --prefix apps/web"
+    "dev": "bun run --filter './apps/*' dev",
+    "dev:api": "bun run --filter '@strokealert/api' dev",
+    "dev:web": "bun run --filter '@strokealert/web' dev",
+    "build": "bun run --filter '@strokealert/shared' build && bun run --filter '@strokealert/api' build && bun run --filter '@strokealert/web' build",
+    "start": "bun run --filter './apps/*' start",
+    "start:api": "bun run --filter '@strokealert/api' start",
+    "start:web": "bun run --filter '@strokealert/web' start",
+    "lint": "bun run --filter '@strokealert/web' lint",
+    "type-check": "bun run --filter './apps/*' type-check",
+    "gen:nepal-map": "node scripts/gen-nepal-map.js apps/web/src/app/data/nepal-map.ts"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

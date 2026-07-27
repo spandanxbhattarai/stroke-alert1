@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
-import EmergencyHero from "./components/EmergencyHero";
+import { GeoProvider } from "./components/GeoProvider";
+import SiteHeader from "./components/SiteHeader";
+import Hero from "./components/Hero";
+import NepalMapSection from "./components/map/NepalMapSection";
+import FastProtocol from "./components/FastProtocol";
 import HospitalList from "./components/HospitalList";
+import WhatToDo from "./components/WhatToDo";
+import EmergencyBar from "./components/EmergencyBar";
+import SiteFooter from "./components/SiteFooter";
 import { getJsonLd } from "./lib/seo";
 
 export const metadata: Metadata = {
@@ -10,7 +17,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default async function HomePage() {
+export default function HomePage() {
   const jsonLd = getJsonLd();
 
   return (
@@ -19,37 +26,20 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <main className="min-h-screen bg-white">
-        {/* Top bar */}
-        <nav className="bg-red-600 text-white px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🚨</span>
-            <span className="text-xl font-black tracking-tight">STROKE ALERT</span>
-          </div>
-          <a
-            href="/admin/login"
-            className="text-xs text-red-200 hover:text-white transition-colors underline"
-          >
-            For Hospitals
-          </a>
-        </nav>
 
-        {/* Emergency Hero */}
-        <EmergencyHero />
-
-        {/* Hospital List — Client component with geolocation */}
-        <section aria-label="Nearest hospitals" className="px-4 pb-12">
+      {/* One geolocation request, shared by the map and the nearest-hospital list. */}
+      <GeoProvider>
+        <SiteHeader />
+        <main>
+          <Hero />
+          <NepalMapSection />
+          <FastProtocol />
           <HospitalList />
-        </section>
-
-        {/* Footer */}
-        <footer className="bg-gray-900 text-gray-400 text-center py-6 px-4 text-sm">
-          <p>StrokeAlert — Emergency Response Platform</p>
-          <p className="mt-1">
-            Nepal Emergency: <a href="tel:102" className="text-red-400 font-bold">102</a>
-          </p>
-        </footer>
-      </main>
+          <WhatToDo />
+        </main>
+        <SiteFooter />
+        <EmergencyBar />
+      </GeoProvider>
     </>
   );
 }

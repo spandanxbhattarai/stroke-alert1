@@ -53,7 +53,10 @@ export const hospitalQuerySchema = z.object({
   city: z.string().optional(),
   search: z.string().optional(),
   page: z.coerce.number().min(1).default(1),
-  pageSize: z.coerce.number().min(1).max(100).default(20),
+  // The public Nepal map plots the whole network in one request, so the ceiling
+  // has to clear the full hospital count rather than a screen's worth.
+  pageSize: z.coerce.number().min(1).max(500).default(20),
+  active: z.enum(["true", "false", "1", "0"]).optional(),
 });
 
 export type CreateHospitalInput = z.infer<typeof createHospitalSchema>;

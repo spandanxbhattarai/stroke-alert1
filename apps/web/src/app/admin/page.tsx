@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "./components/Sidebar";
-import StatCard from "./components/StatCard";
 import Link from "next/link";
+import AdminShell from "./components/AdminShell";
+import StatCard from "./components/StatCard";
+import { ButtonLink } from "../components/ui/Button";
+import { Reveal, RevealGroup, RevealItem } from "../components/ui/Reveal";
+import { ArrowRightIcon, ListIcon, PlusIcon } from "../components/ui/Icons";
+import { API_URL } from "../lib/api";
 
 interface Stats {
   total: number;
@@ -23,7 +27,7 @@ export default function AdminDashboard() {
       router.push("/admin/login");
       return;
     }
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/admin/stats`, {
+    fetch(`${API_URL}/api/admin/stats`, {
       headers: { Authorization: `Bearer ${token}` },
       credentials: "include",
     })
@@ -34,46 +38,93 @@ export default function AdminDashboard() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <div className="max-w-4xl">
-          <h1 className="text-2xl font-black text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-500 mb-8">Overview of StrokeAlert hospital network</p>
-
-          {loading ? (
-            <div className="grid grid-cols-3 gap-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-gray-200 rounded-2xl h-28 animate-pulse" />
-              ))}
+    <AdminShell
+      index="01"
+      kicker="Overview"
+      title="Dashboard"
+      lede="The state of the StrokeAlert hospital network."
+      actions={
+        <ButtonLink
+          href="/admin/hospitals/new"
+          variant="signal"
+          size="md"
+          icon={<PlusIcon className="h-4 w-4" />}
+        >
+          Add hospital
+        </ButtonLink>
+      }
+    >
+      {loading ? (
+        <div className="grid grid-cols-1 gap-px border border-rule bg-rule sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-paper p-7">
+              <div className="h-3 w-24 animate-pulse bg-paper-2" />
+              <div className="mt-8 h-12 w-20 animate-pulse bg-paper-2" />
             </div>
-          ) : stats ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-              <StatCard label="Total Hospitals" value={stats.total} icon="🏥" color="blue" />
-              <StatCard label="Active Hospitals" value={stats.active} icon="✅" color="green" />
-              <StatCard label="Cities Covered" value={stats.citiesCount} icon="🌆" color="red" />
-            </div>
-          ) : null}
-
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 className="font-bold text-gray-800 mb-4">Quick Actions</h2>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/admin/hospitals/new"
-                className="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
-              >
-                + Add Hospital
-              </Link>
-              <Link
-                href="/admin/hospitals"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-6 py-3 rounded-xl transition-colors"
-              >
-                View All Hospitals
-              </Link>
-            </div>
-          </div>
+          ))}
         </div>
-      </main>
-    </div>
+      ) : stats ? (
+        <RevealGroup
+          className="grid grid-cols-1 gap-px border border-rule bg-rule sm:grid-cols-3"
+          stagger={0.08}
+        >
+          <RevealItem>
+            <StatCard index="01" label="Hospitals" value={stats.total} note="Total records" />
+          </RevealItem>
+          <RevealItem>
+            <StatCard
+              index="02"
+              label="Active"
+              value={stats.active}
+              note="Visible to the public"
+            />
+          </RevealItem>
+          <RevealItem>
+            <StatCard index="03" label="Cities" value={stats.citiesCount} note="Distinct cities covered" />
+          </RevealItem>
+        </RevealGroup>
+      ) : (
+        <p className="border border-signal px-4 py-3 font-mono text-micro uppercase tracking-[0.14em] text-signal">
+          Statistics unavailable
+        </p>
+      )}
+
+      {/* quick actions */}
+      <Reveal className="mt-12">
+        <p className="label border-b border-ink pb-3">Quick actions</p>
+        <ul className="grid grid-cols-1 gap-px border-x border-b border-rule bg-rule sm:grid-cols-2">
+          {[
+            {
+              href: "/admin/hospitals/new",
+              title: "Add a hospital",
+              body: "Record a new stroke-ready facility with its coordinates and emergency line.",
+              Icon: PlusIcon,
+            },
+            {
+              href: "/admin/hospitals",
+              title: "Review the network",
+              body: "Search, edit, deactivate, or verify existing hospital records.",
+              Icon: ListIcon,
+            },
+          ].map(({ href, title, body, Icon }) => (
+            <li key={href} className="bg-paper">
+              <Link
+                href={href}
+                className="group flex h-full items-start gap-5 p-6 transition-colors hover:bg-paper-2 sm:p-7"
+              >
+                <Icon className="mt-1 h-5 w-5 shrink-0 text-ink-3 transition-colors group-hover:text-signal" />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="text-h3 font-semibold">{title}</span>
+                    <ArrowRightIcon className="h-4 w-4 shrink-0 text-ink-3 transition-transform duration-300 ease-swiss group-hover:translate-x-1 group-hover:text-ink" />
+                  </span>
+                  <span className="mt-2 block text-body text-ink-2">{body}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Reveal>
+    </AdminShell>
   );
 }

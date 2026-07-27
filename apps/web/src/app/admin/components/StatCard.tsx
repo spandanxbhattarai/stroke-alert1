@@ -1,22 +1,34 @@
-interface Props {
+import CountUp from "../../components/ui/CountUp";
+
+/**
+ * Stat cell. Grid cells on shared hairlines — no coloured boxes, the number
+ * carries the emphasis on its own.
+ */
+export default function StatCard({
+  label,
+  value,
+  index,
+  note,
+}: {
   label: string;
-  value: string | number;
-  icon: string;
-  color?: "red" | "green" | "blue";
-}
-
-const colors = {
-  red: "bg-red-50 text-red-700 border-red-200",
-  green: "bg-green-50 text-green-700 border-green-200",
-  blue: "bg-blue-50 text-blue-700 border-blue-200",
-};
-
-export default function StatCard({ label, value, icon, color = "blue" }: Props) {
+  value: number;
+  index: string;
+  note?: string;
+}) {
   return (
-    <div className={`rounded-2xl border-2 p-5 ${colors[color]}`}>
-      <div className="text-3xl mb-2">{icon}</div>
-      <div className="text-3xl font-black">{value}</div>
-      <div className="text-sm font-medium mt-1 opacity-80">{label}</div>
+    <div className="group bg-paper p-6 transition-colors duration-300 hover:bg-paper-2 sm:p-7">
+      <div className="flex items-start justify-between">
+        <span className="label">{label}</span>
+        <span className="font-mono text-micro tracking-[0.14em] text-ink-3" data-numeric>
+          {index}
+        </span>
+      </div>
+
+      <p className="mt-8 font-mono text-display-l font-medium leading-none tracking-tight">
+        <CountUp to={value} />
+      </p>
+
+      {note && <p className="mt-3 text-small text-ink-2">{note}</p>}
     </div>
   );
 }

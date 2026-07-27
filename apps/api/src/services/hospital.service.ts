@@ -26,7 +26,13 @@ function toRadians(degrees: number): number {
 }
 
 export const hospitalService = {
-  async getAll(options?: { city?: string; search?: string; page?: number; pageSize?: number }) {
+  async getAll(options?: {
+    city?: string;
+    search?: string;
+    isActive?: boolean;
+    page?: number;
+    pageSize?: number;
+  }) {
     return hospitalRepository.findAll(options);
   },
 

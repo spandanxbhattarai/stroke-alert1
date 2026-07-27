@@ -1,15 +1,53 @@
 "use client";
 
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createHospitalSchema, SPECIALIZATIONS, type CreateHospitalInput } from "@strokealert/shared";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import clsx from "clsx";
+import { Button } from "../../components/ui/Button";
+import {
+  CheckField,
+  FieldShell,
+  SelectField,
+  TextAreaField,
+  TextField,
+} from "../../components/ui/Field";
+import { API_URL } from "../../lib/api";
 
 interface Props {
   defaultValues?: Partial<CreateHospitalInput>;
   hospitalId?: string;
   mode: "create" | "edit";
+}
+
+/** Numbered form section: index in the margin, fields on the grid beside it. */
+function Section({
+  index,
+  title,
+  hint,
+  children,
+}: {
+  index: string;
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="grid grid-cols-12 gap-x-gutter gap-y-6 border-b border-rule py-8 first:pt-0">
+      <div className="col-span-12 lg:col-span-3">
+        <div className="flex items-baseline gap-3">
+          <span className="font-mono text-label tracking-[0.14em] text-signal">{index}</span>
+          <h2 className="label-ink">{title}</h2>
+        </div>
+        {hint && <p className="mt-2 max-w-[30ch] text-small text-ink-3">{hint}</p>}
+      </div>
+      <div className="col-span-12 grid grid-cols-1 gap-x-gutter gap-y-6 sm:grid-cols-2 lg:col-span-9">
+        {children}
+      </div>
+    </section>
+  );
 }
 
 export default function HospitalForm({ defaultValues, hospitalId, mode }: Props) {
@@ -33,18 +71,15 @@ export default function HospitalForm({ defaultValues, hospitalId, mode }: Props)
     },
   });
 
-  const getToken = () =>
-    typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
-
   const onSubmit = async (data: CreateHospitalInput) => {
     setLoading(true);
     setServerError(null);
-    const token = getToken();
+    const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
     try {
       const url =
         mode === "edit"
-          ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/hospitals/${hospitalId}`
-          : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/hospitals`;
+          ? `${API_URL}/api/hospitals/${hospitalId}`
+          : `${API_URL}/api/hospitals`;
       const res = await fetch(url, {
         method: mode === "edit" ? "PUT" : "POST",
         headers: {
@@ -68,182 +103,217 @@ export default function HospitalForm({ defaultValues, hospitalId, mode }: Props)
     }
   };
 
-  const Field = ({
-    label,
-    name,
-    required,
-    ...rest
-  }: {
-    label: string;
-    name: keyof CreateHospitalInput;
-    required?: boolean;
-    [key: string]: any;
-  }) => (
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        {...register(name as any)}
-        {...rest}
-        className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-red-500 text-sm"
-      />
-      {errors[name] && (
-        <p className="text-red-600 text-xs mt-1">{errors[name]?.message as string}</p>
-      )}
-    </div>
-  );
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)}>
       {serverError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">
+        <p
+          role="alert"
+          className="mb-8 border border-signal px-4 py-3 font-mono text-micro uppercase tracking-[0.14em] text-signal"
+        >
           {serverError}
-        </div>
+        </p>
       )}
 
-      {/* Basic Info */}
-      <section>
-        <h3 className="font-bold text-gray-800 mb-4">Basic Information</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-2">
-            <Field label="Hospital Name" name="name" required placeholder="e.g. Tribhuvan University Teaching Hospital" />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Type <span className="text-red-500">*</span>
-            </label>
-            <select
-              {...register("type")}
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-red-500 text-sm"
-            >
-              <option value="GOVERNMENT">Government</option>
-              <option value="PRIVATE">Private</option>
-              <option value="NGO">NGO</option>
-            </select>
-            {errors.type && <p className="text-red-600 text-xs mt-1">{errors.type.message}</p>}
-          </div>
-          <div className="flex items-center gap-4 pt-6">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" {...register("available24x7")} className="w-4 h-4 rounded" />
-              <span className="text-sm font-medium text-gray-700">Available 24/7</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" {...register("isActive")} className="w-4 h-4 rounded" />
-              <span className="text-sm font-medium text-gray-700">Active</span>
-            </label>
-          </div>
-        </div>
-      </section>
-
-      {/* Address */}
-      <section>
-        <h3 className="font-bold text-gray-800 mb-4">Address</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-2">
-            <Field label="Address Line 1" name="addressLine1" required placeholder="Street address" />
-          </div>
-          <div className="sm:col-span-2">
-            <Field label="Address Line 2" name="addressLine2" placeholder="Apartment, ward, etc." />
-          </div>
-          <Field label="City" name="city" required placeholder="e.g. Kathmandu" />
-          <Field label="State / Province" name="state" required placeholder="e.g. Bagmati" />
-          <Field label="Country" name="country" placeholder="Nepal" />
-          <Field label="Postal Code" name="postalCode" placeholder="44600" />
-        </div>
-      </section>
-
-      {/* Contact */}
-      <section>
-        <h3 className="font-bold text-gray-800 mb-4">Contact Numbers</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Phone Number" name="phone" required type="tel" placeholder="+977-1-4412303" />
-          <Field label="Emergency Phone (optional)" name="emergencyPhone" type="tel" placeholder="+977-1-4412505" />
-        </div>
-      </section>
-
-      {/* Location */}
-      <section>
-        <h3 className="font-bold text-gray-800 mb-4">Location & Maps</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Latitude" name="latitude" required type="number" step="any" placeholder="27.7376" />
-          <Field label="Longitude" name="longitude" required type="number" step="any" placeholder="85.3317" />
-          <div className="sm:col-span-2">
-            <Field
-              label="Google Maps Link"
-              name="googleMapsLink"
-              required
-              placeholder="https://maps.google.com/?q=..."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Specializations */}
-      <section>
-        <h3 className="font-bold text-gray-800 mb-4">Specializations</h3>
-        <Controller
-          control={control}
-          name="specializations"
-          render={({ field }) => (
-            <div className="flex flex-wrap gap-2">
-              {SPECIALIZATIONS.map((spec) => {
-                const checked = field.value?.includes(spec);
-                return (
-                  <button
-                    key={spec}
-                    type="button"
-                    onClick={() => {
-                      const current = field.value || [];
-                      field.onChange(
-                        checked ? current.filter((s) => s !== spec) : [...current, spec]
-                      );
-                    }}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-colors ${
-                      checked
-                        ? "bg-red-600 text-white border-red-600"
-                        : "bg-white text-gray-600 border-gray-200 hover:border-red-300"
-                    }`}
-                  >
-                    {spec}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+      <Section index="01" title="Identity" hint="How the hospital is listed to the public.">
+        <TextField
+          id="name"
+          label="Hospital name"
+          required
+          className="sm:col-span-2"
+          placeholder="Tribhuvan University Teaching Hospital"
+          error={errors.name?.message}
+          {...register("name")}
         />
-        {errors.specializations && (
-          <p className="text-red-600 text-xs mt-2">{errors.specializations.message as string}</p>
-        )}
-      </section>
+        <SelectField
+          id="type"
+          label="Type"
+          required
+          error={errors.type?.message}
+          {...register("type")}
+        >
+          <option value="GOVERNMENT">Government</option>
+          <option value="PRIVATE">Private</option>
+          <option value="NGO">NGO</option>
+        </SelectField>
+        <div className="flex flex-wrap items-end gap-6">
+          <CheckField label="Available 24 / 7" {...register("available24x7")} />
+          <CheckField label="Active" {...register("isActive")} />
+        </div>
+      </Section>
 
-      {/* Notes */}
-      <section>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (optional)</label>
-        <textarea
+      <Section index="02" title="Address" hint="Written as someone reading it aloud to a driver.">
+        <TextField
+          id="addressLine1"
+          label="Address line 1"
+          required
+          className="sm:col-span-2"
+          placeholder="Maharajgunj Road"
+          error={errors.addressLine1?.message}
+          {...register("addressLine1")}
+        />
+        <TextField
+          id="addressLine2"
+          label="Address line 2"
+          className="sm:col-span-2"
+          placeholder="Ward 3, near the main gate"
+          error={errors.addressLine2?.message}
+          {...register("addressLine2")}
+        />
+        <TextField
+          id="city"
+          label="City"
+          required
+          placeholder="Kathmandu"
+          error={errors.city?.message}
+          {...register("city")}
+        />
+        <TextField
+          id="state"
+          label="Province / state"
+          required
+          placeholder="Bagmati"
+          error={errors.state?.message}
+          {...register("state")}
+        />
+        <TextField
+          id="country"
+          label="Country"
+          placeholder="Nepal"
+          error={errors.country?.message}
+          {...register("country")}
+        />
+        <TextField
+          id="postalCode"
+          label="Postal code"
+          placeholder="44600"
+          error={errors.postalCode?.message}
+          {...register("postalCode")}
+        />
+      </Section>
+
+      <Section index="03" title="Contact" hint="The emergency line is the number shown first to the public.">
+        <TextField
+          id="phone"
+          label="Phone"
+          required
+          type="tel"
+          placeholder="+977-1-4412303"
+          error={errors.phone?.message}
+          {...register("phone")}
+        />
+        <TextField
+          id="emergencyPhone"
+          label="Emergency phone"
+          type="tel"
+          placeholder="+977-1-4412505"
+          error={errors.emergencyPhone?.message}
+          {...register("emergencyPhone")}
+        />
+      </Section>
+
+      <Section
+        index="04"
+        title="Coordinates"
+        hint="These place the hospital on the public Nepal map. Copy them from Google Maps."
+      >
+        <TextField
+          id="latitude"
+          label="Latitude"
+          required
+          type="number"
+          step="any"
+          placeholder="27.7376"
+          error={errors.latitude?.message}
+          {...register("latitude")}
+        />
+        <TextField
+          id="longitude"
+          label="Longitude"
+          required
+          type="number"
+          step="any"
+          placeholder="85.3317"
+          error={errors.longitude?.message}
+          {...register("longitude")}
+        />
+        <TextField
+          id="googleMapsLink"
+          label="Google Maps link"
+          required
+          className="sm:col-span-2"
+          placeholder="https://maps.google.com/?q=27.7376,85.3317"
+          error={errors.googleMapsLink?.message}
+          {...register("googleMapsLink")}
+        />
+      </Section>
+
+      <Section
+        index="05"
+        title="Capability"
+        hint="What this hospital can actually do for a stroke patient."
+      >
+        <div className="sm:col-span-2">
+          <Controller
+            control={control}
+            name="specializations"
+            render={({ field }) => (
+              <FieldShell
+                label="Specializations"
+                required
+                error={errors.specializations?.message as string | undefined}
+              >
+                <div className="flex flex-wrap gap-px pt-1.5">
+                  {SPECIALIZATIONS.map((spec) => {
+                    const checked = field.value?.includes(spec);
+                    return (
+                      <button
+                        key={spec}
+                        type="button"
+                        aria-pressed={checked}
+                        onClick={() => {
+                          const current = field.value || [];
+                          field.onChange(
+                            checked ? current.filter((s) => s !== spec) : [...current, spec]
+                          );
+                        }}
+                        className={clsx(
+                          "tap border px-3.5 font-mono text-micro uppercase tracking-[0.14em] transition-colors",
+                          checked
+                            ? "border-ink bg-ink text-paper"
+                            : "border-rule text-ink-2 hover:border-ink hover:text-ink"
+                        )}
+                      >
+                        {spec}
+                      </button>
+                    );
+                  })}
+                </div>
+              </FieldShell>
+            )}
+          />
+        </div>
+      </Section>
+
+      <Section index="06" title="Notes" hint="Anything a dispatcher should know. Optional.">
+        <TextAreaField
+          id="notes"
+          label="Internal notes"
+          rows={4}
+          className="sm:col-span-2"
+          placeholder="Stroke unit on the second floor; CT available around the clock."
+          error={errors.notes?.message}
           {...register("notes")}
-          rows={3}
-          placeholder="Any additional information..."
-          className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-red-500 text-sm"
         />
-      </section>
+      </Section>
 
-      {/* Actions */}
-      <div className="flex gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white font-bold px-8 py-3 rounded-xl transition-colors"
-        >
-          {loading ? "Saving..." : mode === "edit" ? "Update Hospital" : "Add Hospital"}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-8 py-3 rounded-xl transition-colors"
-        >
+      {/* sticky action bar */}
+      <div className="sticky bottom-0 z-10 -mx-inset mt-8 flex flex-wrap gap-px border-t border-ink bg-paper px-inset py-4">
+        <Button type="submit" variant="signal" size="lg" disabled={loading}>
+          {loading ? "Saving…" : mode === "edit" ? "Update hospital" : "Add hospital"}
+        </Button>
+        <Button type="button" variant="ghost" size="lg" onClick={() => router.back()}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );
