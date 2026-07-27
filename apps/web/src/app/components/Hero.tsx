@@ -49,7 +49,7 @@ export default function Hero() {
             </motion.div>
 
             <SplitLines
-              as="h1"
+              as="h3"
               lines={["Stroke", "emergency?"]}
               className="mt-6 text-display-xl font-extrabold uppercase"
               delay={0.1}
